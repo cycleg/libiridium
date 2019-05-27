@@ -63,7 +63,7 @@ class InformationElement
     /// 
     virtual ContentLength unpack(const char* data, ContentLength size);
     ///
-    /// Pack element into transfer format.
+    /// Pack element into transfer format (serialize).
     ///
     /// @param [in] raw Outgoing data buffer.
     ///

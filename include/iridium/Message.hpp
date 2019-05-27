@@ -52,8 +52,8 @@ class MoMessage: public Message
 
   public:
     static const uint16_t MaxMessageSize; ///< Maximum mobile originated
-                                         ///< message size (bytes), sending
-                                         ///< over Direct IP.
+                                          ///< message size (bytes), receiving
+                                          ///< over Direct IP.
 
     MoMessage();
 

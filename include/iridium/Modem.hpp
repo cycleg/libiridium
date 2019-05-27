@@ -27,7 +27,7 @@ class Modem: private boost::noncopyable
                       ///< next mobile originated SBD session.
       bool mt_flag; ///< True if message in mobile terminated buffer.
       int32_t mtmsn; ///< The sequence number that was used in the most recent
-                     ///< mobile terminated SBD session. This value will be �1
+                     ///< mobile terminated SBD session. This value will be 
                      ///< if there is nothing in the mobile terminated buffer.
       bool ra_flag; ///< True, if SBD ring alert has been received and not
                     ///< answered.
@@ -110,6 +110,7 @@ class Modem: private boost::noncopyable
     SbdSessionStatus DoSbdSession(bool answer);
 
   private:
+    ///
     /// Читать данные из последовательного порта до обнаружения разделителя.
     ///
     /// @param [out] buf Буфер полученных данных, включая разделитель.
@@ -129,8 +130,14 @@ class Modem: private boost::noncopyable
                             const std::string& delim,
                             boost::system::error_code& ec, uint16_t timeout);
 
-    boost::asio::io_service& m_service;
-    std::shared_ptr<boost::asio::io_service::work> m_sentinel;
+    boost::asio::io_service& m_service; ///< Внешний (глобальный) сервис
+                                        ///< ввода/вывода; используется только
+                                        ///< для указания через "сторожа"
+                                        ///< @m_sentinel, что экземпляр данного
+                                        ///< класса не закончил операции
+                                        ///< ввода/вывода.
+    std::shared_ptr<boost::asio::io_service::work>
+      m_sentinel; ///< "Сторож" для внешнего цикла ввода/вывода.
     boost::asio::io_service m_ioService; ///< Экземпляр службы ввода/вывода
                                          ///< для асинхронного чтения из
                                          ///< последовательного порта.
