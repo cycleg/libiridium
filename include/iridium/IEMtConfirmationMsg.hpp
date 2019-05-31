@@ -54,6 +54,6 @@ class IEMtConfirmationMsg:
                                          ///< fixed length.
 }; // class IEMtConfirmationMsg
 
-}; // namespace Iridium::SbdDirectIp
+} // namespace Iridium::SbdDirectIp
 
-}; // namespace Iridium
+} // namespace Iridium

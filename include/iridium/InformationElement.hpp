@@ -94,6 +94,6 @@ template<typename Content> class IEContent
     Content m_content; ///< Information element content, variable.
 }; // class IEContent
 
-}; // namespace Iridium::SbdDirectIp
+} // namespace Iridium::SbdDirectIp
 
-}; // namespace Iridium
+} // namespace Iridium

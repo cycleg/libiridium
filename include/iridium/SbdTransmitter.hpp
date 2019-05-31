@@ -79,4 +79,4 @@ class SbdTransmitter
     SbdDirectIp::ContentLength m_confirmationLength;
 }; // class SbdTransmitter
 
-};  // namespace Iridium
+}  // namespace Iridium

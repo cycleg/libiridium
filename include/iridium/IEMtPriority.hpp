@@ -29,6 +29,6 @@ class IEMtPriority:
     void packInto(std::vector<char>& raw) override;
 }; // class IEMtPriority
 
-}; // namespace Iridium::SbdDirectIp
+} // namespace Iridium::SbdDirectIp
 
-}; // namespace Iridium
+} // namespace Iridium

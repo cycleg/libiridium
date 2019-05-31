@@ -25,6 +25,6 @@ class IEMtPayload:
     void packInto(std::vector<char>& raw) override;
 }; // class IEMtPayload
 
-}; // namespace Iridium::SbdDirectIp
+} // namespace Iridium::SbdDirectIp
 
-}; // namespace Iridium
+} // namespace Iridium

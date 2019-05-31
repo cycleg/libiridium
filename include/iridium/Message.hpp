@@ -116,6 +116,6 @@ std::ostream& operator<<(std::ostream& out, const MoMessage& m);
 std::ostream& operator<<(std::ostream& out, const MtMessage& m);
 std::ostream& operator<<(std::ostream& out, const MtConfirmMessage& m);
 
-}; // namespace Iridium::SbdDirectIp
+} // namespace Iridium::SbdDirectIp
 
-}; // namespace Iridium
+} // namespace Iridium

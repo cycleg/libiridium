@@ -71,6 +71,6 @@ class Codec
     static std::shared_ptr<InformationElement> IEFactory(uint8_t id);
 }; // class Codec
 
-}; // namespace Iridium::SbdDirectIp
+} // namespace Iridium::SbdDirectIp
 
-}; // namespace Iridium
+} // namespace Iridium

@@ -28,6 +28,6 @@ class IEMoConfirmation:
                                         ///< fixed length.
 }; // class IEMoConfirmation
 
-}; // namespace Iridium::SbdDirectIp
+} // namespace Iridium::SbdDirectIp
 
-}; // namespace Iridium
+} // namespace Iridium

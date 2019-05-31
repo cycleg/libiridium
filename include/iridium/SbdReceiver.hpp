@@ -53,4 +53,4 @@ class SbdReceiver
     boost::asio::ip::tcp::socket m_socket; ///< Принимающий сокет.
 }; // class SbdReceiver
 
-}; // namespcae Iridium
+} // namespcae Iridium

@@ -30,4 +30,4 @@ class IncomingSbdSession: public std::enable_shared_from_this<IncomingSbdSession
     uint16_t m_messageLength; ///< Length from MO header information element.
 }; // class IncomingSbdSession
 
-}; // namespace Iridium
+} // namespace Iridium

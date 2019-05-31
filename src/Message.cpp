@@ -220,5 +220,5 @@ std::ostream& operator<<(std::ostream& out, const MtConfirmMessage& m)
   return out;
 }
 
-}; // namespace Iridium::SbdDirectIp
-}; // namespace Iridium
+} // namespace Iridium::SbdDirectIp
+} // namespace Iridium

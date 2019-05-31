@@ -63,6 +63,6 @@ class IEMoHeader:
     void packInto(std::vector<char>& raw) override;
 }; // class IEMoHeader
 
-}; // namespace Iridium::SbdDirectIp
+} // namespace Iridium::SbdDirectIp
 
-}; // namespace Iridium
+} // namespace Iridium

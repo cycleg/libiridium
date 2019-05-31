@@ -54,6 +54,6 @@ class IEMtHeader:
     void packInto(std::vector<char>& raw) override;
 }; // class IEMtHeader
 
-}; // namespace Iridium::SbdDirectIp
+} // namespace Iridium::SbdDirectIp
 
-}; // namespace Iridium
+} // namespace Iridium

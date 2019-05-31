@@ -150,4 +150,4 @@ class Modem: private boost::noncopyable
                               ///< соответствующего последовательному порту.
 };
 
-}; // namespace Iridium
+} // namespace Iridium

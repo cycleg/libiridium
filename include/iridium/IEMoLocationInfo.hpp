@@ -40,6 +40,6 @@ class IEMoLocationInfo:
     void packInto(std::vector<char>& raw) override;
 }; // class IEMoLocationInfo
 
-}; // namespace Iridium::SbdDirectIp
+} // namespace Iridium::SbdDirectIp
 
-}; // namespace Iridium
+} // namespace Iridium

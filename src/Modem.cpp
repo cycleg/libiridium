@@ -36,7 +36,7 @@ void logBuf(boost::asio::streambuf& buf)
 }
 #endif
 
-};
+}
 
 using namespace Iridium;
 
