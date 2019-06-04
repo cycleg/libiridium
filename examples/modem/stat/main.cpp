@@ -119,6 +119,12 @@ int main()
     std::cout << (modem.ClearMomsn() ?
                   "The MOMSN was cleared successfully." :
                   "An error occurred while clearing the MOMSN.") << std::endl;
+    {
+      std::string buffer;
+      if (modem.GetImei(buffer))
+        std::cout << "IMEI: " << buffer << std::endl;
+        else std::cout << "Can't get IMEI" << std::endl;
+    }
     try
     {
       std::vector<char> payload;

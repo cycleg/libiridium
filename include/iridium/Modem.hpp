@@ -76,6 +76,7 @@ class Modem: private boost::noncopyable
     bool SbdGetStatus(SbdStatus& status);
     bool SbdClearBuffers(EClearMessageBuffers clear);
     bool ClearMomsn();
+    bool GetImei(std::string& imei);
     ///
     /// Write MO message to modem buffer.
     ///

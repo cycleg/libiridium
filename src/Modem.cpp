@@ -333,6 +333,30 @@ bool Modem::ClearMomsn()
   return (line[0] == '0');
 }
 
+bool Modem::GetImei(std::string& imei)
+{
+  if (!isOpen()) return false;
+  boost::system::error_code ec;
+  boost::asio::write(m_io, boost::asio::buffer("AT+CGSN\r", 8), ec);
+  if (ec) return false;
+  // return:
+  // 300125061511830
+  // 
+  // OK
+  boost::asio::streambuf buf;
+  read_until_timeout(buf, "OK\r\n", ec, 5);
+  if (ec) return false;
+  std::istream is(&buf);
+  std::string line;
+  std::string::size_type pos2, pos = 0;
+  std::getline(is, line);
+  std::getline(is, line);
+  pos2 = line.find_first_of('\r', pos);
+  if (pos2 == std::string::npos) return false;
+  imei = line.substr(pos, pos2 - pos);
+  return true;
+}
+
 uint8_t Modem::WriteMessage(const std::vector<char>& payload)
 {
   if (!isOpen())
