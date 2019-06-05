@@ -34,9 +34,11 @@ class SbdReceiver
     ///
     /// Закрыть принимающий сокет.
     ///
+    /// @param [in] woexcept Не поднимать исключения.
+    ///
     /// @throw std::runtime_error
     ///
-    void stop();
+    void stop(bool woexcept = false);
 
   private:
     ///

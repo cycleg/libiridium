@@ -68,7 +68,7 @@ class Modem: private boost::noncopyable
     /// @throw std::runtime_error
     ///
     void Open();
-    void Close();
+    void Close(bool woexcept = false);
 
     bool NetGetStatus(uint8_t& status);
     bool GetSignalQuality(uint8_t& quality, bool lastKnown = false);

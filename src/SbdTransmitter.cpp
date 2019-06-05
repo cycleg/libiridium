@@ -30,7 +30,7 @@ SbdTransmitter::SbdTransmitter(boost::asio::io_service& service,
 
 SbdTransmitter::~SbdTransmitter()
 {
-  stop();
+  stop(true);
 }
 
 void SbdTransmitter::start()
@@ -44,13 +44,34 @@ void SbdTransmitter::start()
   m_thread.swap(thread);
 }
 
-void SbdTransmitter::stop()
+void SbdTransmitter::stop(bool woexcept)
 {
   if (!m_running) return;
   m_shutdown = true;
-  m_delayTimer.cancel();
-  if (m_socket.is_open()) m_socket.cancel();
-  m_thread->join();
+  try
+  {
+    m_delayTimer.cancel();
+  }
+  catch (...)
+  {
+    if (!woexcept) throw;
+  }
+  try
+  {
+    if (m_socket.is_open()) m_socket.cancel();
+  }
+  catch (...)
+  {
+    if (!woexcept) throw;
+  }
+  try
+  {
+    m_thread->join();
+  }
+  catch (...)
+  {
+    if (!woexcept) throw;
+  }
 }
 
 void SbdTransmitter::post(const SbdDirectIp::MtMessage& message)

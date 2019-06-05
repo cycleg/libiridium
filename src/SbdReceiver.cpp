@@ -29,7 +29,7 @@ SbdReceiver::SbdReceiver(
 
 SbdReceiver::~SbdReceiver()
 {
-  stop();
+  stop(true);
 }
 
 void SbdReceiver::start()
@@ -72,13 +72,13 @@ void SbdReceiver::start()
   doAccept();
 }
 
-void SbdReceiver::stop()
+void SbdReceiver::stop(bool woexcept)
 {
   if (!m_acceptor.is_open()) return;
   boost::system::error_code ec;
   m_sentinel.reset();
   m_acceptor.close(ec);
-  if (ec)
+  if (ec && !woexcept)
   {
     throw std::runtime_error(ec.message().c_str());
   }

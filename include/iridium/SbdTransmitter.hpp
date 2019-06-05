@@ -34,7 +34,7 @@ class SbdTransmitter
     inline void dropMessages() { m_messageQueue.clear(); }
 
     void start();
-    void stop();
+    void stop(bool woexcept = false);
     void post(const SbdDirectIp::MtMessage& message);
 
   private:

@@ -51,7 +51,7 @@ Modem::Modem(boost::asio::io_service& service, const std::string& device):
 
 Modem::~Modem()
 {
-  Close();
+  Close(true);
 }
 
 void Modem::Open()
@@ -86,13 +86,20 @@ void Modem::Open()
   m_sentinel.swap(work);
 }
 
-void Modem::Close()
+void Modem::Close(bool woexcept)
 {
-  m_timer.cancel();
-  // waiting when read_until_timeout() complete
-  std::unique_lock<std::mutex> lock(m_mutex);
-  m_sentinel.reset();
-  if (isOpen()) m_io.close();
+  try
+  {
+    m_timer.cancel();
+    // waiting when read_until_timeout() complete
+    std::unique_lock<std::mutex> lock(m_mutex);
+    m_sentinel.reset();
+    if (isOpen()) m_io.close();
+  }
+  catch (...)
+  {
+    if (!woexcept) throw;
+  }
 }
 
 bool Modem::NetGetStatus(uint8_t& status)
