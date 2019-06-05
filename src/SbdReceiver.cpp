@@ -5,10 +5,23 @@
 
 using namespace Iridium;
 
-SbdReceiver::SbdReceiver(boost::asio::io_service& service, short port):
+SbdReceiver::SbdReceiver(
+  boost::asio::io_service& service,
+  short port
+):
   m_service(service),
-  m_port(port),
-  m_endpoint(boost::asio::ip::tcp::v4(), m_port),
+  m_endpoint(boost::asio::ip::tcp::v4(), port),
+  m_acceptor(m_service),
+  m_socket(m_service)
+{
+}
+
+SbdReceiver::SbdReceiver(
+  boost::asio::io_service& service,
+  const boost::asio::ip::tcp::socket::endpoint_type& endpoint
+):
+  m_service(service),
+  m_endpoint(endpoint),
   m_acceptor(m_service),
   m_socket(m_service)
 {
