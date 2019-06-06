@@ -1,15 +1,18 @@
 #include <cstring>
-#include <iostream>
+#include <sstream>
 #include <stdexcept>
 #include <utility>
 #include <netinet/in.h>
 #include "iridium/Codec.hpp"
+#include "iridium/SbdReceiver.hpp"
 #include "iridium/IncomingSbdSession.hpp"
 
 using namespace Iridium;
 
-IncomingSbdSession::IncomingSbdSession(boost::asio::ip::tcp::socket socket):
+IncomingSbdSession::IncomingSbdSession(boost::asio::ip::tcp::socket socket,
+                                       std::shared_ptr<SbdReceiver>& receiver):
   m_socket(std::move(socket)),
+  m_receiver(receiver),
   m_messageLength(0)
 {
 }
@@ -31,8 +34,11 @@ void IncomingSbdSession::onRead(const boost::system::error_code& ec,
 {
   if (ec)
   {
-    std::cerr << "IncomingSbdSession::onRead() error: " << ec.message()
-              << std::endl;
+    if (!m_receiver.expired())
+    {
+      auto rcv = m_receiver.lock();
+      rcv->m_OnError(ec.message());
+    }
     return;
   }
   m_inBuf.commit(bytes);
@@ -49,8 +55,13 @@ void IncomingSbdSession::onRead(const boost::system::error_code& ec,
     header.m_length = ntohs(header.m_length);
     if (header.m_proto != SbdDirectIp::SbdProtoNumber)
     {
-      std::cerr << "IncomingSbdSession::onRead() error: protocol number is "
-                << int(header.m_proto) << std::endl;
+      if (!m_receiver.expired())
+      {
+        auto rcv = m_receiver.lock();
+        std::ostringstream err;
+        err << "invalid  protocol number " << int(header.m_proto);
+        rcv->m_OnError(err.str());
+      }
       return;
     }
     m_messageLength = header.m_length;
@@ -74,10 +85,15 @@ void IncomingSbdSession::onRead(const boost::system::error_code& ec,
     SbdDirectIp::Codec::messageCategory(buf.data(), m_messageLength);
   if (msgCategory != SbdDirectIp::Codec::eMoMessage)
   {
-    std::cerr << "IncomingSbdSession::onRead() error: ";
-    if (msgCategory != SbdDirectIp::Codec::eUnknownMessage)
-      std::cerr << "unexpected ";
-    std::cerr << SbdDirectIp::Codec::categoryStr(msgCategory) << std::endl;
+    if (!m_receiver.expired())
+    {
+      auto rcv = m_receiver.lock();
+      std::ostringstream err;
+      if (msgCategory != SbdDirectIp::Codec::eUnknownMessage)
+        err << "unexpected ";
+      err << SbdDirectIp::Codec::categoryStr(msgCategory);
+      rcv->m_OnError(err.str());
+    }
     return;
   }
   SbdDirectIp::MoMessage message;
@@ -87,12 +103,26 @@ void IncomingSbdSession::onRead(const boost::system::error_code& ec,
   }
   catch (std::runtime_error& e)
   {
-    std::cerr << "IncomingSbdSession::onRead() message parse error: " << e.what() << std::endl;
+    if (!m_receiver.expired())
+    {
+      auto rcv = m_receiver.lock();
+      std::ostringstream err;
+      err << "message parse error: " << e.what();
+      rcv->m_OnError(err.str());
+    }
     return;
   }
   m_inBuf.consume(m_messageLength);
-  std::clog << message << std::endl;
-  if (m_inBuf.size() > 0)
-    std::cerr << "IncomingSbdSession::onRead(): " << m_inBuf.size()
-              << " unexpected bytes received." << std::endl;
+  if (!m_receiver.expired())
+  {
+    auto rcv = m_receiver.lock();
+    rcv->m_OnMessage(message);
+    if (m_inBuf.size() > 0)
+    {
+      // для доставки очередного сообщения "Иридиум" откроет новую сессию
+      std::ostringstream err;
+      err << "unexpected " << m_inBuf.size()  << " bytes received";
+      rcv->m_OnError(err.str());
+    }
+  }
 }

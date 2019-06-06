@@ -88,11 +88,22 @@ bool alreadyRunning(const std::string& pidFilename, const std::string& appName)
   return (cmdline.find(appName) != cmdline.npos);
 }
 
+void OnError(const std::string& error)
+{
+  std::cerr << "Receive error: " << error << std::endl;
+}
+
+void OnMessage(const Iridium::SbdDirectIp::MoMessage& message)
+{
+  std::clog << message << std::endl;
+}
+
 int main()
 {
   bool shutdown = false;
   boost::asio::io_service io_service;
-  Iridium::SbdReceiver receiver(io_service, iridiumPort);
+  Iridium::SbdReceiver::Pointer receiver =
+    Iridium::SbdReceiver::Factory(io_service, iridiumPort);
   boost::asio::signal_set stopSignals(io_service, SIGINT, SIGTERM, SIGQUIT);
   stopSignals.async_wait(
   [&](const boost::system::error_code& error, int signal) {
@@ -102,18 +113,21 @@ int main()
     shutdown = true;
     try
     {
-      receiver.stop();
+      receiver->stop();
     }
     catch (std::runtime_error& e)
     {
       std::cerr << "Receiver stop error: " << e.what() << std::endl;
     }
   });
+  std::vector<boost::signals2::connection> receiverConnections;
+  receiverConnections.push_back(receiver->OnErrorConnect(&OnError));
+  receiverConnections.push_back(receiver->OnMessageConnect(&OnMessage));
   while (!shutdown)
   {
     try
     {
-      receiver.start();
+      receiver->start();
     }
     catch (std::runtime_error& e)
     {
@@ -122,5 +136,6 @@ int main()
     }
     io_service.run();
   }
+  for (auto& c: receiverConnections) c.disconnect();
   return EXIT_SUCCESS;
 }

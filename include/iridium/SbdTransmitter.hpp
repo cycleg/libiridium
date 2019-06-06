@@ -5,6 +5,7 @@
 #include <thread>
 #include <boost/asio.hpp>
 #include <boost/asio/steady_timer.hpp>
+#include <boost/signals2/signal.hpp>
 #include "JobUnitQueue.hpp"
 #include "Message.hpp"
 
@@ -27,13 +28,35 @@ namespace Iridium {
 class SbdTransmitter
 {
   public:
+    // передается сообщение об ошибке
+    typedef boost::signals2::signal<void (const std::string&)> SignalOnError;
+    // передается статус отправки, возвращаемый "Иридиумом" в поле "MT Message
+    // Status" сообщения "MT Message Confirmation"
+    typedef boost::signals2::signal<void (int16_t)> SignalOnTransmitResult;
+
     SbdTransmitter(boost::asio::io_service& service, const std::string& host,
                    const std::string& port);
     ~SbdTransmitter();
 
+    inline boost::signals2::connection OnErrorConnect(
+      const SignalOnError::slot_type& subscriber
+    )
+    {
+      return m_emitOnError.connect(subscriber);
+    }
+    inline boost::signals2::connection OnTransmitResultConnect(
+      const SignalOnTransmitResult::slot_type& subscriber
+    )
+    {
+      return m_emitOnTransmitResult.connect(subscriber);
+    }
+
     inline void dropMessages() { m_messageQueue.clear(); }
 
     void start();
+    ///
+    /// @throw std::runtime_error
+    ///
     void stop(bool woexcept = false);
     void post(const SbdDirectIp::MtMessage& message);
 
@@ -77,6 +100,8 @@ class SbdTransmitter
     SbdDirectIp::MtMessage m_sendingMessage;
     std::shared_ptr<boost::asio::streambuf> m_buf;
     SbdDirectIp::ContentLength m_confirmationLength;
+    SignalOnError m_emitOnError; ///< Сигнал о возникшей ошибке передачи.
+    SignalOnTransmitResult m_emitOnTransmitResult; ///< Сигнал со статусом передачи.
 }; // class SbdTransmitter
 
 }  // namespace Iridium

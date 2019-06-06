@@ -13,6 +13,16 @@ const char* iridiumHost = "12.47.179.12";
 const char* iridiumPort = "10800";
 const char* IMEI = "300125061511830";
 
+void OnError(const std::string& error)
+{
+  std::cerr << "Transmit error: " << error << std::endl;
+}
+
+void OnResult(int16_t res)
+{
+  std::cerr << "Transmit status: " << res << std::endl;
+}
+
 int main(int argc, char* argv[])
 {
   if (argc != 2)
@@ -34,6 +44,9 @@ int main(int argc, char* argv[])
     shutdown = true;
     transmitter.stop();
   });
+  std::vector<boost::signals2::connection> transmitterConnections;
+  transmitterConnections.push_back(transmitter.OnErrorConnect(&OnError));
+  transmitterConnections.push_back(transmitter.OnTransmitResultConnect(&OnResult));
   while (!shutdown)
   {
     transmitter.start();
@@ -47,5 +60,6 @@ int main(int argc, char* argv[])
     transmitter.post(message);
     io_service.run();
   }
+  for (auto& c: transmitterConnections) c.disconnect();
   return EXIT_SUCCESS;
 }

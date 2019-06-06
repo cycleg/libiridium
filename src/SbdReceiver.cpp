@@ -32,6 +32,22 @@ SbdReceiver::~SbdReceiver()
   stop(true);
 }
 
+SbdReceiver::Pointer SbdReceiver::Factory(boost::asio::io_service& service,
+                                          short int port)
+{
+  Pointer self(new SbdReceiver(service, port));
+  return self;
+}
+
+SbdReceiver::Pointer SbdReceiver::Factory(
+  boost::asio::io_service& service,
+  const boost::asio::ip::tcp::socket::endpoint_type& endpoint
+)
+{
+  Pointer self(new SbdReceiver(service, endpoint));
+  return self;
+}
+
 void SbdReceiver::start()
 {
   if (m_acceptor.is_open()) return;
@@ -92,7 +108,8 @@ void SbdReceiver::doAccept()
     if (ec == boost::asio::error::operation_aborted) return;
     if (!ec)
     {
-      std::make_shared<IncomingSbdSession>(std::move(m_socket))->run();
+      auto self(shared_from_this());
+      std::make_shared<IncomingSbdSession>(std::move(m_socket), self)->run();
     }
     doAccept();
   });

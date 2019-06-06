@@ -1,7 +1,7 @@
 #include <chrono>
 #include <cstring>
 #include <functional>
-#include <iostream>
+#include <sstream>
 #include <netinet/in.h>
 #include "iridium/Codec.hpp"
 #include "iridium/SbdTransmitter.hpp"
@@ -134,7 +134,6 @@ void SbdTransmitter::StateMachine()
   switch (m_state)
   {
     case eNotConnected:
-std::clog << "SbdTransmitter::StateMachine() " << " messages " << m_messageQueue.size() << std::endl;
       m_buf.reset();
       m_confirmationLength = 0;
       m_sentinel.reset();
@@ -152,9 +151,12 @@ std::clog << "SbdTransmitter::StateMachine() " << " messages " << m_messageQueue
         // something happened...
         if (ec == boost::asio::error::operation_aborted) return;
         if ((m_state != eResolving) || m_shutdown) return;
-        if (ec) {
-          std::cerr << "SbdTransmitter::StateMachine() failed to resolve " << m_host
-                    << ":" << m_port << ": " << ec.message() << std::endl;
+        if (ec)
+        {
+          std::ostringstream err;
+          err << "failed to resolve " << m_host << ":" << m_port << ": "
+              << ec.message();
+          m_emitOnError(err.str());
           m_prevState = m_state;
           m_state = eError;
           StateMachine();
@@ -174,8 +176,9 @@ std::clog << "SbdTransmitter::StateMachine() " << " messages " << m_messageQueue
         if ((m_state != eConnecting) || m_shutdown) return;
         if (ec || (i == boost::asio::ip::tcp::resolver::iterator()))
         {
-          std::cerr << "SbdTransmitter::StateMachine() connection error: " << ec.message()
-                    << std::endl;
+          std::ostringstream err;
+          err << "connection error: " << ec.message();
+          m_emitOnError(err.str());
           m_prevState = m_state;
           m_state = eError;
           StateMachine();
@@ -204,8 +207,9 @@ std::clog << "SbdTransmitter::StateMachine() " << " messages " << m_messageQueue
           if ((m_state != eSending) || m_shutdown) return;
           if (ec)
           {
-            std::cerr << "SbdTransmitter::StateMachine() transmit error: " << ec.message()
-                      << std::endl;
+            std::ostringstream err;
+            err << "transmit error: " << ec.message();
+            m_emitOnError(err.str());
             m_prevState = m_state;
             m_state = eError;
             StateMachine();
@@ -226,8 +230,9 @@ std::clog << "SbdTransmitter::StateMachine() " << " messages " << m_messageQueue
           if ((m_state != eReceivingHeader) || m_shutdown) return;
           if (ec)
           {
-            std::cerr << "SbdTransmitter::StateMachine() receive confirmation error: " << ec.message()
-                      << std::endl;
+            std::ostringstream err;
+            err << "receive confirmation error: " << ec.message();
+            m_emitOnError(err.str());
             m_prevState = m_state;
             m_state = eError;
             StateMachine();
@@ -245,8 +250,9 @@ std::clog << "SbdTransmitter::StateMachine() " << " messages " << m_messageQueue
           header.m_length = ntohs(header.m_length);
           if (header.m_proto != SbdDirectIp::SbdProtoNumber)
           {
-            std::cerr << "SbdTransmitter::StateMachine() error: protocol number is "
-                      << header.m_proto << std::endl;
+            std::ostringstream err;
+            err << "invalid protocol number " << int(header.m_proto);
+            m_emitOnError(err.str());
             m_prevState = m_state;
             m_state = eError;
             StateMachine();
@@ -268,8 +274,9 @@ std::clog << "SbdTransmitter::StateMachine() " << " messages " << m_messageQueue
               if ((m_state != eReceivingConfirmation) || m_shutdown) return;
               if (ec)
               {
-                std::cerr << "SbdTransmitter::StateMachine() receive confirmation error: " << ec.message()
-                          << std::endl;
+                std::ostringstream err;
+                err << "receive confirmation error: " << ec.message();
+                m_emitOnError(err.str());
                 m_prevState = m_state;
                 m_state = eError;
                 StateMachine();
@@ -297,10 +304,12 @@ std::clog << "SbdTransmitter::StateMachine() " << " messages " << m_messageQueue
           SbdDirectIp::Codec::messageCategory(buf.data(), m_confirmationLength);
         if (msgCategory != SbdDirectIp::Codec::eMtConfirmMessage)
         {
-          std::cerr << "SbdTransmitter::StateMachine() receive confirmation error: ";
+          std::ostringstream err;
+          err << "receive confirmation error: ";
           if (msgCategory != SbdDirectIp::Codec::eUnknownMessage)
-            std::cerr << "unexpected ";
-          std::cerr << SbdDirectIp::Codec::categoryStr(msgCategory) << std::endl;
+            err << "unexpected ";
+          err << SbdDirectIp::Codec::categoryStr(msgCategory) << std::endl;
+          m_emitOnError(err.str());
           m_prevState = m_state;
           m_state = eError;
           StateMachine();
@@ -313,15 +322,16 @@ std::clog << "SbdTransmitter::StateMachine() " << " messages " << m_messageQueue
         }
         catch (std::runtime_error& e)
         {
-          std::cerr << "SbdTransmitter::StateMachine() confirmation parse error: "
-                    << e.what() << std::endl;
+          std::ostringstream err;
+          err << "confirmation parse error: " << e.what();
+          m_emitOnError(err.str());
           m_prevState = m_state;
           m_state = eError;
           StateMachine();
           return;
         }
         m_buf->consume(m_confirmationLength);
-        std::clog << confirmation << std::endl;
+        m_emitOnTransmitResult(confirmation.status());
         if (confirmation.status() < 0)
         {
           m_prevState = m_state;
@@ -331,8 +341,12 @@ std::clog << "SbdTransmitter::StateMachine() " << " messages " << m_messageQueue
         }
       }
       if (m_buf->size() > 0)
-        std::cerr << "SbdTransmitter::StateMachine(): " << m_buf->size()
-                  << " unexpected bytes received." << std::endl;
+      {
+        // в одну сессию передается ровно одно сообщение
+        std::ostringstream err;
+        err << m_buf->size() << " unexpected bytes received";
+        m_emitOnError(err.str());
+      }
       m_errDelay = 1;
       m_prevState = m_state;
       m_state = eSuccess;
