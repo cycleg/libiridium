@@ -59,16 +59,16 @@ void IncomingSbdSession::onRead(const boost::system::error_code& ec,
       {
         auto rcv = m_receiver.lock();
         std::ostringstream err;
-        err << "invalid  protocol number " << int(header.m_proto);
+        err << "invalid protocol number " << int(header.m_proto);
         rcv->m_OnError(err.str());
       }
       return;
     }
     m_messageLength = header.m_length;
   }
-  if (m_inBuf.size() < m_messageLength)
+  if (!m_messageLength || (m_inBuf.size() < m_messageLength))
   {
-    // read rest of message
+    // continue read
     auto self(shared_from_this());
     m_socket.async_read_some(
       m_inBuf.prepare(SbdDirectIp::MoMessage::MaxMessageSize),
