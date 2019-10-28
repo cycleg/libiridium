@@ -65,7 +65,6 @@ SET(HEADERS
     include/iridium/Modem.hpp
     include/iridium/SbdReceiver.hpp
     include/iridium/SbdTransmitter.hpp
-
 )
 
 SET(SOURCES

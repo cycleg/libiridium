@@ -90,4 +90,4 @@ class SbdReceiver: public std::enable_shared_from_this<SbdReceiver>
     SignalOnMessage m_OnMessage; ///< Сигнал о входящем сообщении.
 }; // class SbdReceiver
 
-} // namespcae Iridium
+} // namespace Iridium
